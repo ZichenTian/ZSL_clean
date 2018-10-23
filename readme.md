@@ -21,8 +21,7 @@
 * pic_rootpaht：数据集图片的根目录
 
 ##### python2 gui.py
-
-* 推荐使用python2
+* 入口在code/gui.py下，进入code/目录，python2 gui.py即可
 * 依赖pillow和tkinter，如果没有的话，需要安装一下
 * 窗口太小可以拖大一点
 
