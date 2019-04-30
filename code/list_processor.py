@@ -5,17 +5,10 @@ from parse_config import parse_config
 def process_train_list(config_dict):
     with open(config_dict['train_list'], 'rb') as train_list_file:
         train_list = train_list_file.readlines()
-    
-    picname_list = []
-    label_list = []
-    for line in train_list:
-        line = line.strip()
-        m = re.match(r'(.+\.jpg).+(ZJL.+)', line)
-        if m is not None:
-            picname_list.append(m.group(1))
-            label_list.append(m.group(2))
-    #print 'total %d images' % (len(picname_list))
-    return picname_list, label_list
+        train_list = [x.strip() for x in train_list]
+    with open(config_dict['save_list'], 'rb') as label_list_file:
+        label_list = label_list_file.readlines()
+    return train_list, label_list
 
 def get_label_dict(config_dict):
     with open(config_dict['label_list'], 'rb') as label_list_file:

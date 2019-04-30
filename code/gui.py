@@ -6,7 +6,7 @@ except:
 
 from PIL import Image, ImageTk
 from parse_config import parse_config
-from list_processor import *
+from list_processor import process_train_list
 import os
 
 '''
@@ -28,96 +28,80 @@ class Application(Frame):
     def __init__(self, config_dict,master=None):
         Frame.__init__(self, master)
         self.pack()
-        self.picname_list, self.label_list = process_train_list(config_dict)
-        self.label_dict = get_label_dict(config_dict)
+        self.image_list, self.label_list = process_train_list(config_dict)
         self.index = 0
         self.pic_rootpath = config_dict['pic_rootpath']
-        self.zoom_factor = 1
-        self.right_list = config_dict['right_list']
-        self.wrong_list = config_dict['wrong_list']
+        self.label_path = config_dict['save_list']
         self.createWidges()
     
     def createWidges(self):
-        self.labelLabel = Label(self, text=self.label_dict[self.label_list[self.index]])
-        self.labelLabel.pack()
         self.imageLabel = Label(self, image=self.readimg())
         self.imageLabel.pack()
         self.previewButton = Button(self, text='前一张(p)', command=self.preview, bg='white')
         self.previewButton.pack()
         self.nextButton = Button(self, text='后一张(n)', command=self.next, bg='white')
         self.nextButton.pack()
-        self.rightButton = Button(self, text='标注正确(r)', command=self.right, bg='white')
+        self.forwardButton = Button(self, text='正视(w)', command=self.forward, bg='white')
+        self.forwardButton.pack()
+        self.backwardButton = Button(self, text='后视(s)', command=self.backward, bg='white')
+        self.backwardButton.pack()
+        self.leftButton = Button(self, text='左视(a)', command=self.left, bg='white')
+        self.leftButton.pack()
+        self.rightButton = Button(self, text='右视(d)', command=self.right, bg='white')
         self.rightButton.pack()
-        self.wrongButton = Button(self, text='标注错误(w)', command=self.wrong, bg='white')
-        self.wrongButton.pack()
-        self.zoominButton = Button(self, text='放大(i)', command=self.zoom_in, bg='white')
-        self.zoominButton.pack()
-        self.zoomoutButton = Button(self, text='缩小(o)', command=self.zoom_out, bg='white')
-        self.zoomoutButton.pack()
         self.flyEntry = Entry(self)
         self.flyEntry.pack()
         self.flyButton = Button(self, text='跳转', command=self.fly, bg='white')
         self.flyButton.pack()
-        self.indexLabel = Label(self, text=str(self.index)+'/'+str(len(self.picname_list)-1))
+        self.indexLabel = Label(self, text=str(self.index)+'/'+str(len(self.image_list)-1))
         self.indexLabel.pack()
         self.master.bind('n', self.next)
         self.master.bind('p', self.preview)
-        self.master.bind('r', self.right)
-        self.master.bind('w', self.wrong)
-        self.master.bind('i', self.zoom_in)
-        self.master.bind('o', self.zoom_out)
+        self.master.bind('w', self.forward)
+        self.master.bind('s', self.backward)
+        self.master.bind('a', self.left)
+        self.master.bind('d', self.right)
         
     def fly(self, event=None):
-        if int(self.flyEntry.get()) >= 0 and int(self.flyEntry.get()) < len(self.picname_list):
+        if int(self.flyEntry.get()) >= 0 and int(self.flyEntry.get()) < len(self.image_list):
             self.index = int(self.flyEntry.get())
         self.refresh()
 
-    def zoom_in(self, event=None):
-        self.zoom_factor += 0.2
-        self.refresh()
-
-    def zoom_out(self, event=None):
-        self.zoom_factor -= 0.2
-        if self.zoom_factor <= 1:
-            self.zoom_factor = 1
-        self.refresh()
-
     def readimg(self):
-        picname = os.path.join(self.pic_rootpath, self.picname_list[self.index])
+        picname = self.image_list[self.index]
         img = Image.open(picname)
-        w,h = img.size
-        w = int(w*self.zoom_factor)
-        h = int(h*self.zoom_factor)
-        img = img.resize((w,h))
         self.img = ImageTk.PhotoImage(img)
         return self.img
 
     def save_and_quit(self):
         self.quit()
 
-    def right(self, event=None):
-        if search_picname(self.picname_list[self.index], self.right_list) >= 0:
-            pass
-        elif search_picname(self.picname_list[self.index], self.wrong_list) >= 0:
-            remove_picname(self.picname_list[self.index], self.wrong_list)
-            add_picname(self.picname_list[self.index], self.right_list)
-        else:
-            add_picname(self.picname_list[self.index], self.right_list)
+    def forward(self, event=None):
+        self.label_list[self.index] = '1\n'
+        with open(self.label_path, 'wb') as f:
+            f.writelines(self.label_list)
+        self.next()
+    
+    def backward(self, event=None):
+        self.label_list[self.index] = '2\n'
+        with open(self.label_path, 'wb') as f:
+            f.writelines(self.label_list)
         self.next()
 
-    
-    def wrong(self, event=None):
-        if search_picname(self.picname_list[self.index], self.right_list) >= 0:
-            remove_picname(self.picname_list[self.index], self.right_list)
-            add_picname(self.picname_list[self.index], self.wrong_list)
-        elif search_picname(self.picname_list[self.index], self.wrong_list) >= 0:
-            pass
-        else:
-            add_picname(self.picname_list[self.index], self.wrong_list)
+    def left(self, event=None):
+        self.label_list[self.index] = '3\n'
+        with open(self.label_path, 'wb') as f:
+            f.writelines(self.label_list)
+        self.next()
+
+    def right(self, event=None):
+        self.label_list[self.index] = '4\n'
+        with open(self.label_path, 'wb') as f:
+            f.writelines(self.label_list)
         self.next()
 
     def next(self, event=None):
-        if self.index >= len(self.picname_list):
+        if self.index >= len(self.image_list):
             return
         self.index += 1
         self.refresh()
@@ -130,14 +114,19 @@ class Application(Frame):
 
     def refresh(self):
         self.imageLabel['image'] = self.readimg()
-        self.labelLabel['text'] = self.label_dict[self.label_list[self.index]]
-        self.indexLabel['text'] = str(self.index)+'/'+str(len(self.picname_list)-1)
+        self.indexLabel['text'] = str(self.index)+'/'+str(len(self.image_list)-1)
+        self.forwardButton['bg'] = 'white'
+        self.backwardButton['bg'] = 'white'
+        self.leftButton['bg'] = 'white'
         self.rightButton['bg'] = 'white'
-        self.wrongButton['bg'] = 'white'
-        if search_picname(self.picname_list[self.index], self.right_list) >= 0:
+        if self.label_list[self.index] == '1\n':
+            self.forwardButton['bg'] = 'blue'
+        if self.label_list[self.index] == '2\n':
+            self.backwardButton['bg'] = 'blue'
+        if self.label_list[self.index] == '3\n':
+            self.leftButton['bg'] = 'blue'
+        if self.label_list[self.index] == '4\n':
             self.rightButton['bg'] = 'blue'
-        elif search_picname(self.picname_list[self.index], self.wrong_list) >= 0:
-            self.wrongButton['bg'] = 'blue'
 
 def gui_main():
     config_dict = parse_config('./config.proto')

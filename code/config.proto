@@ -1,7 +1,3 @@
-train_list:/home/tianzichen/Working/ZSL/train/train.txt        #设置为train.txt的路径，数据集里面的
-label_list:/home/tianzichen/Working/ZSL/train/label_list.txt    #设置为label_list.txt的路径，数据集里面的
-
-right_list:/home/tianzichen/Working/ZSL/train/right_list.txt    #清洗后结果保存文件，这个list是标注正确的内容，会自动鞥洗呢
-wrong_list:/home/tianzichen/Working/ZSL/train/wrong_list.txt    #清洗后结果保存文件，这个list是需要被删除的内容，会自动更新
-
-pic_rootpath:/home/tianzichen/Working/ZSL/train/train   #数据集图片根目录
+train_list:./imglist.txt        #设置为train.txt的路径，数据集里面的
+save_list:./labels.txt    #label路径
+pic_rootpath:/home/tianzichen/Working/reid/process_data/data   #数据集图片根目录
